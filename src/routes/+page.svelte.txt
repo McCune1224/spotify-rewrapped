@@ -1,3 +1,37 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import { SpotifyApi } from '@spotify/web-api-ts-sdk';
+	import { PUBLIC_CLIENT_ID } from '$env/static/public';
+	import { PUBLIC_REDIRECT_URL } from '$env/static/public';
+
+	let isAuthenticated = false;
+	let profile: any = null;
+
+	const SCOPES = ['playlist-read-private', 'user-library-read'];
+
+	const sdk = SpotifyApi.withUserAuthorization(PUBLIC_CLIENT_ID, PUBLIC_REDIRECT_URL, SCOPES);
+
+	// onMount(async () => {
+	// 	try {
+	// 		await sdk.authenticate();
+	// 		isAuthenticated = true;
+	// 		profile = await sdk.currentUser.profile();
+	// 	} catch (error) {
+	// 		console.error('Authentication failed:', error);
+	// 	}
+	// });
+
+	const login = () => {
+		sdk.authenticate();
+	};
+
+	const logout = () => {
+		sdk.logOut();
+		isAuthenticated = false;
+		profile = null;
+	};
+</script>
+
 <main class="min-h-screen bg-base-200">
 	<div class="hero min-h-screen">
 		<div class="hero-overlay bg-opacity-60"></div>
@@ -6,7 +40,9 @@
 				<h1 class="mb-5 text-5xl font-bold text-primary">Spotify Re-Wrapped</h1>
 				<p class="mb-8 text-lg">Spotify wrapped stats was mid this year. I'm here to fix that...</p>
 				<div class="space-y-4">
-					<a class="btn btn-primary btn-lg w-64" href="/dashboard"> Log In with Spotify </a>
+					<button class="btn btn-primary btn-lg w-64" on:click={login}>
+						Log In with Spotify
+					</button>
 					<p class="text-sm opacity-75">
 						Free analysis of your listening habits that you can share with your friends!
 					</p>

@@ -1,23 +1,64 @@
 <script lang="ts">
-	import type { PageServerData } from './$types';
+	import { goto } from '$app/navigation';
+	import { spotifyStore } from '$lib/stores/spotify';
+	import { onMount } from 'svelte';
 
-	let error: string | null = null;
-	let { data }: { data: PageServerData } = $props();
+	let isAuthenticated = false;
+	let profile: any = null;
+
+	onMount(async () => {
+		const unsubscribe = spotifyStore.subscribe(async (sdk) => {
+			if (sdk) {
+				try {
+					await sdk.authenticate();
+					isAuthenticated = true;
+					profile = await sdk.currentUser.profile();
+				} catch (error) {
+					console.error('Authentication failed:', error);
+				}
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	});
+
+	function login() {
+		$spotifyStore?.authenticate();
+	}
+
+	async function logout() {
+		await $spotifyStore?.logOut();
+		isAuthenticated = false;
+		goto('/');
+	}
 </script>
 
-<!-- <main> -->
-<!-- 	{#if error} -->
-<!-- 		<p class="error">{error}</p> -->
-<!-- 	{:else if profile} -->
-<!-- 		<h1>Welcome {profile.display_name}</h1> -->
-<!-- 		<img src={profile.images?.[0]?.url} alt="Profile" height="64" width="64" /> -->
-<!-- 		<p>Followers: {profile.followers.total}</p> -->
-<!-- 	{:else} -->
-<!-- 		<p>Loading...</p> -->
-<!-- 	{/if} -->
-<!-- </main> -->
-
 <main>
-	<h1 class="text-5xl">Look at this bozo: {data.me.display_name}</h1>
-	<img class="rounded-xl" src={data.me.images?.[0]?.url} alt="Profile" height="64" width="64" />
+	{#if isAuthenticated}
+		<button on:click={logout}>Logout</button>
+		<h1>Lol look at this bozo</h1>
+		{#if profile}
+			<h2>{profile.display_name}!</h2>
+			<img src={profile.images[0]?.url} alt="Profile" width="100" height="100" />
+			<p>Email: {profile.email}</p>
+		{/if}
+	{:else}
+		<button on:click={login}>Login with Spotify</button>
+	{/if}
 </main>
+
+<style>
+	main {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 20px;
+		text-align: center;
+	}
+	button {
+		padding: 10px 20px;
+		font-size: 16px;
+		cursor: pointer;
+	}
+</style>
