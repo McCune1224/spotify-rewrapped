@@ -18,6 +18,6 @@
 <!-- </main> -->
 
 <main>
-	<h1>Whats good</h1>
-	<p>Here is JSON SOUP: {JSON.stringify(data)}</p>
+	<h1 class="text-5xl">Look at this bozo: {data.me.display_name}</h1>
+	<img class="rounded-xl" src={data.me.images?.[0]?.url} alt="Profile" height="64" width="64" />
 </main>
